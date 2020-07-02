@@ -1,0 +1,99 @@
+
+import RPi.GPIO as GPIO
+import time
+ 
+GPIO.setmode(GPIO.BOARD)
+ 
+GPIO_TRIGGER = 11
+GPIO_ECHO = 7
+RedledPin=16
+greenledPin=18
+GPIO.setup(RedledPin, GPIO.OUT)
+GPIO.setup(greenledPin, GPIO.OUT)
+GPIO.setup(GPIO_TRIGGER, GPIO.OUT)
+GPIO.setup(GPIO_ECHO, GPIO.IN)
+redled=GPIO.PWM(RedledPin,50)
+greenled=GPIO.PWM(greenledPin,50)
+redled.start(0)
+greenled.start(0)
+def distance():
+    GPIO.output(GPIO_TRIGGER, True)
+ 
+    
+    time.sleep(0.00001)
+    GPIO.output(GPIO_TRIGGER, False)
+ 
+    StartTime = time.time()
+    StopTime = time.time()
+ 
+    while GPIO.input(GPIO_ECHO) == 0:
+        StartTime = time.time()
+ 
+    # save time of arrival
+    while GPIO.input(GPIO_ECHO) == 1:
+        StopTime = time.time()
+ 
+    
+    Timegap= StopTime - StartTime
+    
+    distance = (Timegap * 34300) / 2
+ 
+    return distance
+ 
+if __name__ == '__main__':
+    try:
+        while True:
+            dist = distance()
+            print ("Measured Distance = %.1f cm" % dist)
+            time.sleep(1)
+            if(dist>=1200):
+                duty=0
+                redled.ChangeDutyCycle(duty)
+                greenled.ChangeDutyCycle(duty)
+                
+            elif(dist<1200 and dist>=300):
+                duty=100
+                greenled.ChangeDutyCycle(duty)
+                duty=0
+                redled.ChangeDutyCycle(duty)
+                
+            elif(dist<300 and dist>=200):
+                duty=50
+                greenled.ChangeDutyCycle(duty)
+                duty=0
+                redled.ChangeDutyCycle(duty)
+            
+            elif(dist<200 and dist>=100):
+                duty=10
+                redled.ChangeDutyCycle(duty)
+                greenled.ChangeDutyCycle(duty)
+                    
+            elif(dist<100 and dist>=70):
+                duty=40
+                redled.ChangeDutyCycle(duty)
+                
+                duty=0
+                greenled.ChangeDutyCycle(duty)
+                
+            elif(dist<70 and dist>=30):
+                duty=70
+                redled.ChangeDutyCycle(duty)
+                
+                duty=0
+                greenled.ChangeDutyCycle(duty)    
+            elif(dist<30):
+                duty=100
+                redled.ChangeDutyCycle(duty)
+                duty=0
+                greenled.ChangeDutyCycle(duty)    
+                
+       
+    except KeyboardInterrupt:
+        print("Measurement stopped by User")
+        GPIO.cleanup()
+        GPIO.output(RedledPin,GPIO.LOW)
+        GPIO.output(greenledPin,GPIO.LOW) 
+    
+          
+
+      
